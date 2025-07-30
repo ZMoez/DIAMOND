@@ -3,7 +3,7 @@
 The examples were developed in collaboration with **Masoud Ebrahimi** and **Marjan Sirjani**.
 
 
-## Example: Stepper
+## Example 1: Stepper
 
 We introduce a simple system referred to as the *Stepper*.  
 This system models a single component that maintains an internal integer variable `x`,  
@@ -53,7 +53,7 @@ The updated behavior of the Stepper is as follows:
 > **Note**: This variation introduces different reachable states compared to the original Stepper model, when we want to avoid unsafe state (`x == 5`), due to the nondeterministic jump from `x == 4` to `x == 6`.
 
 
-## Example: LaneChanger (Collision-Aware Multi-Agent System)
+## Example 2: LaneChanger (Collision-Aware Multi-Agent System)
 
 In this example, we model a two-lane road scenario with two autonomous cars navigating a finite-length track (`positions 0` to `max_bound`).  
 Each car can execute one of five possible actions:
@@ -119,7 +119,7 @@ Demonstrates **centralized coordination** and enforcement across multiple agents
 
 
 
-## Example: SimpleCar and SimpleCar-Shielded
+## Example 3: SimpleCar and SimpleCar-Shielded
 
 This example models an **autonomous car** moving along a bounded road.  
 At each cycle, the car chooses one of three actions:  
