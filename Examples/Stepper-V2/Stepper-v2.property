@@ -1,0 +1,17 @@
+property {
+    define {
+        x0 = (stepper.x == 0);
+        x1 = (stepper.x == 1);
+        x2 = (stepper.x == 2);
+        x3 = (stepper.x == 3);
+        x4 = (stepper.x == 4);
+        x5 = (stepper.x == 5);
+        x6 = (stepper.x == 6);
+
+        UNSAFE = (stepper.x == 5);
+    }
+
+    Assertion {
+        //Assertion1: !(UNSAFE);
+    }
+}
