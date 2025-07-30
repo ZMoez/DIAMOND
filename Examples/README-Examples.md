@@ -5,7 +5,7 @@ The examples were developed in collaboration with **Masoud Ebrahimi** and **Marj
 
 ## Example: Stepper
 
-We introduce a simple, self-contained reactive system referred to as the *Stepper*.  
+We introduce a simple system referred to as the *Stepper*.  
 This system models a single component that maintains an internal integer variable `x`,  
 which it updates periodically based on simple transition rules.  
 The Stepper operates in an infinite loop, performing one transition per cycle.
