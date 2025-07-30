@@ -1,6 +1,6 @@
 # DIAMOND-Examples
 
-### Example: Stepper
+## Example: Stepper
 
 We introduce a simple, self-contained reactive system referred to as the *Stepper*.  
 This system models a single component that maintains an internal integer variable `x`,  
@@ -50,7 +50,7 @@ The updated behavior of the Stepper is as follows:
 > **Note**: This variation introduces different reachable states compared to the original Stepper model, when we want to avoid unsafe state (`x == 5`), due to the nondeterministic jump from `x == 4` to `x == 6`.
 
 
-### Example: LaneChanger (Collision-Aware Multi-Agent System)
+## Example: LaneChanger (Collision-Aware Multi-Agent System)
 
 In this example, we model a two-lane road scenario with two autonomous cars navigating a finite-length track (`positions 0` to `max_bound`).  
 Each car can execute one of five possible actions:
@@ -77,13 +77,12 @@ Each car is instantiated with two important behavioral parameters:
 These parameters allow modeling different behavioral profiles, cautious agents, unshielded aggressors, or fully protected cars.
 
 
-We have two local and central version, described below. In both versions, the system enforces a safety invariant:
-
+> We have two local and central version, described below. In both versions, the system enforces a safety invariant:
 G !(car0.pos == car1.pos && car0.lane == car1.lane)
 
 
 
-#### Local Shield (Decentralized)
+### Local Shield (Decentralized)
 
 Each car has **its own internal shield logic**, implemented as a message server (`msgsrv shield()`) in the car's reactive class.  
 This decentralized shield has **limited knowledge**, it only sees the other car’s last known state (position and lane) and makes localized safety decisions.
@@ -101,7 +100,7 @@ allowing decentralized shields to make decisions based on the **most recent visi
 
 Demonstrates lightweight **agent-level autonomy with local safety enforcement**.
 
-#### Global Shield (Centralized)
+### Global Shield (Centralized)
 
 In the **centralized version**, cars query a dedicated **Shield reactive class** that has **global knowledge** of all vehicles' current positions and lanes.
 
