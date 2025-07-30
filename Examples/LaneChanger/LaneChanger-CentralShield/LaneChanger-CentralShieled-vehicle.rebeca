@@ -1,0 +1,122 @@
+
+
+env int max_bound = 5;
+
+reactiveclass FreeVehicle(5) {
+    knownrebecs {
+        Shield shield;
+    }
+    statevars {
+    	boolean riskAverse;
+    	boolean shielded;
+        int pos;
+        int lane;
+        int currentAction;
+        int safeAction;
+        int acceleration;
+    }
+
+    FreeVehicle(boolean isRiskAverse, boolean isShielded, int initPos, int initLane) {
+    	riskAverse = isRiskAverse; 
+        shielded = isShielded;
+        pos = initPos;
+        lane = initLane;
+        acceleration = 1;
+        self.selectAction(); 
+    }
+    
+    msgsrv selectAction()
+    {
+    
+    	if (riskAverse)
+    		currentAction = ?(3,4);
+    	else 
+        	currentAction = ?(0, 1, 2, 3, 4); // 0: Turn Left, 1: Idle, 2: Turn Right, 3: Faster, 4: Slower, Based on the Gym Highway Env.
+        	
+    	if (shielded) shield.step(self, currentAction, pos, lane) after(1);
+        else self.step(currentAction) after(1);      
+	}
+
+    msgsrv step(int action) {
+        if (action == 0){
+        	lane = lane - 1;
+        	if (lane < 0) lane = 0; 
+        } else if (action == 1) {}
+        else if (action == 2) {
+        	lane = lane + 1;
+        	if (lane > 1) lane = 1;
+        } else if (action == 3) {
+        	pos = pos + acceleration; 
+        	if (pos > max_bound) pos = max_bound;
+        } else if (action == 4) {
+        	pos = pos - acceleration;
+        	if (pos < 0) pos = 0;
+        }
+        
+        
+        shield.update(self, pos, lane); //after(1); // Shield has a global view
+        
+        self.selectAction() after(1); 
+    }   
+}
+
+reactiveclass Shield(5) {
+    knownrebecs {
+        FreeVehicle vehicle0;
+        FreeVehicle vehicle1;
+    }
+    statevars {
+        int pos0, lane0;
+        int pos1, lane1;
+        boolean active;
+        boolean unSafe; 
+    }
+
+    Shield(boolean isActive, int p0, int l0, int p1, int l1) {
+        active = isActive;
+        pos0 = p0;
+        lane0 = l0;
+        pos1 = p1;
+        lane1 = l1;
+    }
+    
+    msgsrv update(FreeVehicle vehicle, int currentPos, int currentLane){
+    	if(vehicle == vehicle0){
+        	pos0 = currentPos;
+        	lane0 = currentLane;
+        } else {
+        	pos1 = currentPos;
+        	lane1 = currentLane;
+        }
+    }
+
+    msgsrv step(FreeVehicle vehicle, int action, int currentPos, int currentLane) {
+    	int delta = 2;
+		int safeAction = action;
+		
+        boolean unsafeV0TurnLeft = (action == 0 && vehicle == vehicle0 && currentLane == lane1 + 1 && pos1 -delta <= currentPos && currentPos <= pos1 + delta);
+        boolean unsafeV1TurnLeft = (action == 0 && vehicle == vehicle1 && currentLane == lane0 + 1 && pos0 -delta <= currentPos && currentPos <= pos0 + delta); 
+        boolean unsafeV0TurnRight = (action == 2 && vehicle == vehicle0 && currentLane == lane1 - 1 && pos1 -delta <= currentPos && currentPos <= pos1 + delta);
+        boolean unsafeV1TurnRight = (action == 2 && vehicle == vehicle1 && currentLane == lane0 - 1 && pos0 -delta <= currentPos && currentPos <= pos0 + delta); 
+        boolean unsafeV0Faster = (action == 3 && vehicle == vehicle0 && pos1 -delta <= currentPos && currentPos <= pos1 + delta && currentLane == lane1);
+        boolean unsafeV1Faster = (action == 3 && vehicle == vehicle1 && pos0 -delta <= currentPos && currentPos <= pos0 + delta && currentLane == lane0);
+       	boolean unsafeV0Slower = (action == 4 && vehicle == vehicle0 && pos1 -delta <= currentPos && currentPos <= pos1 + delta && currentLane == lane1);
+        boolean unsafeV1Slower = (action == 4 && vehicle == vehicle1 && pos0 -delta <= currentPos && currentPos <= pos0 + delta && currentLane == lane0);
+        boolean unSafeV0 = (unsafeV0TurnLeft || unsafeV0TurnRight || unsafeV0Faster || unsafeV0Slower);  
+        boolean unSafeV1 = (unsafeV1TurnLeft || unsafeV1TurnRight || unsafeV1Faster || unsafeV1Slower); 
+        
+        unSafe = (vehicle == vehicle0) ? unSafeV0 : unSafeV1; 
+           
+        safeAction = active && unSafe ? 1 : action;
+        vehicle.step(safeAction) after(2);
+    }    
+}
+
+
+main {   
+    Shield shield(vehicle0, vehicle1):(true, 0, 0, 5, 0);
+    
+    FreeVehicle vehicle0(shield):(true, false, 0, 0);
+    FreeVehicle vehicle1(shield):(true, true, 5, 0);
+}
+

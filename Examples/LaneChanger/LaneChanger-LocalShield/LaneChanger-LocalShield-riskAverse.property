@@ -1,0 +1,9 @@
+property {
+	define{		
+		same_position = (car0.pos == car1.pos);
+		same_lane = (car0.lane == car1.lane);	
+	}
+    Assertion {
+       // Collision: !( same_position && same_lane);
+    }
+}

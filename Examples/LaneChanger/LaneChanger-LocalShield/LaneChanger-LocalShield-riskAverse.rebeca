@@ -1,0 +1,86 @@
+env byte max_bound = 5;
+
+reactiveclass CarWithLocalShield(3) {
+    knownrebecs {
+        CarWithLocalShield otherCar;
+    }
+
+    statevars {
+        int pos;
+        int lane;
+        boolean riskAverse;
+        boolean shielded;
+        byte currentAction;
+        int otherPos;
+        int otherLane;
+        int acceleration;
+    }
+	
+    CarWithLocalShield(boolean isriskAverse, boolean isShielded, int initPos, int initLane, int initOtherPos, int initOtherLane) {
+        pos = initPos;
+        lane = initLane;
+        riskAverse = isriskAverse;
+        shielded = isShielded;
+        otherPos = initOtherPos;
+        otherLane = initOtherLane;
+        acceleration = 1;
+        self.selectAction();
+    }
+
+    msgsrv selectAction() {
+    
+    	if (riskAverse)
+    		currentAction = ?(3,4);
+    	else 
+        	currentAction = ?(0, 1, 2, 3, 4); // 0: Turn Left, 1: Idle, 2: Turn Right, 3: Faster, 4: Slower, Based on the Gym Highway Env.
+        
+        
+        if (shielded) self.shield() after(1);
+        else self.step(currentAction) after(1);
+    }
+    
+    
+    msgsrv update(int currentPos, int currentLane){
+    	otherPos = currentPos;
+    	otherLane = currentLane; 
+    }
+	
+    msgsrv shield() {
+    	int delta = 2;
+        byte safeAction = currentAction;
+        
+		boolean unsafeTurnLeft = (currentAction == 0 && lane == 1 && otherLane == 0 && (otherPos - 1) <= pos && pos <= (otherPos + 1));
+		boolean unsafeTurnRight = (currentAction == 2 && lane == 0 && otherLane == 1 && (otherPos - 1) <= pos && pos <= (otherPos + 1));		        
+       	boolean unsafeFaster = (currentAction == 3 && (otherPos - delta) <= pos && pos <= (otherPos + delta) && lane == otherLane );
+        boolean unsafeSlower = (currentAction == 4 && (otherPos - delta) <= pos && pos <= (otherPos + delta) && lane == otherLane );
+         
+        boolean unSafe = (unsafeTurnLeft || unsafeTurnRight || unsafeFaster || unsafeSlower );  
+       
+        safeAction = unSafe ? 1 : currentAction;  // if (unSafe) safeAction = 1;
+        self.step(safeAction) after(1);
+    }
+	
+	msgsrv step(int action) {
+        if (action == 0){
+        	lane = lane - 1;
+        	if (lane < 0) lane = 0; 
+        } else if (action == 1) {}
+        else if (action == 2) {
+        	lane = lane + 1;
+        	if (lane > 1) lane = 1;
+        } else if (action == 3) {
+        	pos = pos + acceleration; 
+        	if (pos > max_bound) pos = max_bound;
+        } else if (action == 4) {
+        	pos = pos - acceleration;
+        	if (pos < 0) pos = 0;
+        }        
+        otherCar.update(pos, lane) after(1);
+        self.selectAction() after(2); 
+    }
+}
+
+main {
+    CarWithLocalShield car0(car1):(true, false, 0, 0, 5, 0);
+    CarWithLocalShield car1(car0):(true, true, 5, 0, 0, 0); 
+} 

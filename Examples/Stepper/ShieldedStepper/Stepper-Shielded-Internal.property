@@ -1,0 +1,17 @@
+property {
+    define {
+        x0 = (shstepper.x == 0);
+        x1 = (shstepper.x == 1);
+        x2 = (shstepper.x == 2);
+        x3 = (shstepper.x == 3);
+        x4 = (shstepper.x == 4);
+        x5 = (shstepper.x == 5);
+        x6 = (shstepper.x == 6);
+
+        UNSAFE = (shstepper.x == 5);
+    }
+
+    Assertion {
+        Assertion1: !(UNSAFE);
+    }
+}

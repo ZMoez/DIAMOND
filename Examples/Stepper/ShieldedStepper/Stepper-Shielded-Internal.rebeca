@@ -1,0 +1,38 @@
+reactiveclass ShieldedStepper (3){
+    statevars {
+        int x;
+    }
+    ShieldedStepper() {
+        x = 0;
+        self.shield(); // we can omit it
+        self.step();
+    }
+    msgsrv step() {
+        if (x < 6) 
+        {
+            if (x == 3 && ?(true, false)) 
+                self.reset();
+            else 
+                x = x + 1;    
+        } 
+        else 
+        {  
+            self.reset();
+        }
+        self.shield();
+        self.step();
+    }
+    void reset(){
+        x = 0;
+    }
+    void shield(){
+        if(x == 3) {
+            // Orange transition redirected based on green alternative
+            x = 0;  
+        }
+    }
+}
+main {
+    ShieldedStepper shstepper():();
+}
+

@@ -1,0 +1,28 @@
+property {
+	define{		
+		same_position = (vehicle0.pos == vehicle1.pos);
+		same_lane = (vehicle0.lane == vehicle1.lane);
+		
+		vehicle0TurnLeft = (vehicle0.currentAction == 0);
+		vehicle1TurnLeft = (vehicle1.currentAction == 0);
+		
+		vehicle0Idle = (vehicle0.currentAction == 1);
+		vehicle1Idle = (vehicle1.currentAction == 1);
+		
+		vehicle0TurnRight = (vehicle0.currentAction == 2);
+		vehicle1TurnRight = (vehicle1.currentAction == 2);
+		
+		vehicle0Faster = (vehicle0.currentAction == 3);
+		vehicle1Faster = (vehicle1.currentAction == 3);
+		
+		vehicle0Slower = (vehicle0.currentAction == 4);
+		vehicle1Slower = (vehicle1.currentAction == 4);	
+		
+		UNSAFE = ( vehicle0.pos == vehicle1.pos && vehicle0.lane == vehicle1.lane);
+		
+			
+	}
+    Assertion {
+       Collision: !( same_position && same_lane);
+    }
+}
