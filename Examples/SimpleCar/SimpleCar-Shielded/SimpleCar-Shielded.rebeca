@@ -1,0 +1,135 @@
+// This example is not yet complete.
+
+env byte min_bound = 0;
+env byte max_bound = 5;
+
+
+ env byte Idle = 1;
+ env byte Forward = 2;
+ env byte Backward = 3;
+ 
+ 
+reactiveclass SimpleCar(10) {
+    knownrebecs {SimpleCar otherCar;} // Note8:we need to consider other rebecs as knownrebecs 
+    
+
+    statevars {
+    
+    	boolean shielded;
+    	
+        int pos;
+        int lane;
+        int dest;
+        int speed;
+        byte currentAction;
+        byte safeAction;
+        
+        // Note6, we need to know other rebecs locations, if we consider a list, then we will have a better template
+        int otherPos;
+        int otherLane;
+    }
+    
+    SimpleCar(boolean isShielded, int p, int l, int d, int s)
+    {
+    	shielded = isShielded;
+    	pos = p;
+    	lane = l;
+    	dest = d;
+    	speed = s;
+    	self.selectAction()after(2);  // Note1: if the main action (e.g., step) is called in the constructor, we also have to call the shield here. 
+    }
+    	
+    msgsrv selectAction()
+    {
+    	currentAction = ?(Idle,Forward,Backward); // Idle(stop) , Faster(forward), Slower(backward)
+    	
+    	// Note2: Shielded
+    	if (shielded) self.shield() after(1);
+    	else self.step(currentAction) after(1);
+    }
+    
+    msgsrv step(int action)
+    {
+    	if(action == Idle)
+    	{}
+    	else if (action == Forward) // && pos<dest)
+    	{
+    		pos = pos + speed; 
+    		if (pos > max_bound) pos = max_bound; 
+    	}
+    	else if (action == Backward) // && pos>dest)
+    	{
+    		pos = pos - speed;
+    		if (pos < min_bound) pos = min_bound; 
+    	}	
+    	
+    	
+    	// Note7: updating other car. When updating another car, we have to update all instances of the reactive classes (i.e. or in general all agents involved in the collaboration that require safety)
+    	otherCar.update(pos, lane) after(1);
+        self.selectAction() after(2); 
+    }
+    
+    
+    // Note3: (Update should be for all agents involved in the collaboration that require e.g., safety)
+    msgsrv update(int currentPos, int currentLane){
+    	otherPos = currentPos;
+    	otherLane = currentLane; 
+    }
+    
+    // Note4: Here, we are shielding the actions that lead to changes in the state variables. In other words, we are not explicitly changing the value of the state variables.
+    // Note that in some examples, we cannot change the value arbitrarily, e.g. physical positions. 
+    
+    
+    // Note5: We need a safety distance in shielding (sometimes), depending on the behavior of the agetns, e.g., speed of the agents 
+    // (we set the speed to 1, for example if it was 2 for both cars, the safe distance would be 4)
+    
+    msgsrv shield() {
+    	int delta = 1;
+        safeAction = currentAction;
+        
+		// Note9, some assertions can be directly coplies here (e.g., car1_backward), some needs to consider both state variables and actions (e.g., collision)
+		// The extracted rules may be more interesting for the latter case!
+		
+		// Assertion1: !(collision);
+		boolean UNSAFEcarForward = (currentAction == Forward &&  (otherPos - delta) <= pos && lane == otherLane );
+		boolean UNSAFEcarBackward = (currentAction == Backward &&  (otherPos + delta) >= pos && lane == otherLane );
+		if (UNSAFEcarForward || UNSAFEcarBackward)  safeAction = Idle;
+		// We could also consider changing the lane if it was included in the set of actions.	
+		
+		
+		// Assertion3: !car1_backward;
+		// Similar to // Assertion5
+		
+		
+		// Note12: PROBLEM, we are shielding unsafe actions to Idle, so it makes a loop and we will get Queue overflow
+		// Assertion4: !car1_idle_in_middle; 
+		boolean car_idle_in_middle = (currentAction == Idle  &&  pos != dest);
+		// We pick the Forward, but but if des<pos, the rebec should go backkward 
+		/*
+		if (car_idle_in_middle)
+			// self.selectAction(); / Queue overflow
+			
+			{
+				currentAction = Forward; 
+				self.shield() after(1);
+			}
+		*/
+		
+		
+		
+		// Assertion5. car1 always progresses toward destination
+		// Note10: We have to replace current action with safe action in the assertion
+		boolean Noprogress = (currentAction == Backward && pos < dest); // ||(car1.currentAction == Forward && car1.pos < car1.dest)
+        // Note11: We could better selecting Forward for safeAction, but should check safety again (similar to Assertion1), ..
+        if (Noprogress)  safeAction = Idle; 
+        
+        
+        self.step(safeAction) after(1);
+    }   
+}
+
+main
+{
+	SimpleCar car1(car2):(true, 0,0,5,1);
+	SimpleCar car2(car1):(true, 1,0,5,1);
+}

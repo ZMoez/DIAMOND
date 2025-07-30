@@ -1,0 +1,58 @@
+env byte min_bound = 0;
+env byte max_bound = 5;
+
+
+ env byte Idle = 1;
+ env byte Forward = 2;
+ env byte Backward = 3;
+ 
+ 
+reactiveclass SimpleCar(3) {
+    knownrebecs {}
+
+    statevars {
+        int pos;
+        int lane;
+        int dest;
+        int speed;
+        byte currentAction;
+    }
+    
+    SimpleCar(int p, int l, int d, int s)
+    {
+    	pos = p;
+    	lane = l;
+    	dest = d;
+    	speed = s;
+    	self.selectAction(); 
+    }
+    	
+    msgsrv selectAction()
+    {
+    	currentAction = ?(Idle,Forward,Backward); // Idle(stop) , Faster(forward), Slower(backward)
+    	self.step(currentAction) after(1);
+    }
+    
+    msgsrv step(int action)
+    {
+    	if(action == Idle)
+    	{}
+    	else if (action == Forward) // && pos<dest)
+    	{
+    		pos = pos + speed; 
+    		if (pos > max_bound) pos = max_bound; 
+    	}
+    	else if (action == Backward) // && pos>dest)
+    	{
+    		pos = pos - speed;
+    		if (pos < min_bound) pos = min_bound; 
+    	}	
+    	self.selectAction() after(1);
+    }   
+}
+
+main
+{
+	SimpleCar car1():(0,0,5,1);
+	SimpleCar car2():(1,0,5,1);
+}

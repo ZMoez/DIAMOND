@@ -1,0 +1,71 @@
+property{
+	define {
+
+		same_position = (car1.pos == car2.pos);
+        same_lane = (car1.lane == car2.lane);
+
+        collision = (car1.pos == car2.pos && car1.lane == car2.lane);
+
+		car1_out_of_bounds = (car1.pos < min_bound || car1.pos > max_bound);
+		
+		// Note11: replace currentAction with safeAction
+		car1_backward = (car1.safeAction == Backward && car1.pos < car1.dest);
+		
+		car1_idle_in_middle = (car1.currentAction == Idle  &&  car1.pos != car1.dest);
+		
+		obstacle = ((car1.pos == 2 && car1.lane == 1)||(car2.pos == 2 && car2.lane == 1));
+
+		obstacle2 = ((car1.pos == 4 && car1.lane == 0)||(car2.pos == 4 && car2.lane == 0));
+		
+		goal = (car1.pos == 5 && car1.lane == 0);
+						
+	}
+	Assertion{
+		
+		// Fail
+		// 1. No collision (same pos and same lane)
+        // Assertion1: !(collision);
+        
+        // Pass
+        // 2. car1 never goes out of bounds (also we can consider for car2)
+        // Assertion2: !car1_out_of_bounds;
+        
+        
+        // Fail
+        // Similar to 5 
+        // 3. car1 should not go backward 
+        // Assertion3: !car1_backward;
+        
+        
+        // Fail
+        // 4. car1 should not stay idle before reaching destination
+        // Assertion4: !car1_idle_in_middle; 
+        
+        
+        // Fail
+        // Similar to Assertion 3
+        // 5. car1 always progresses toward destination
+        // Assertion5: !(car1.currentAction == Backward && car1.pos < car1.dest);
+        
+        // Pass
+        // 6. car1 and car2 do not reach the same final position if their destinations differ
+        // Assertion6: !(car1.dest != car2.dest && car1.pos == car2.pos && car1.pos == car1.dest && car2.pos == car2.dest);
+        
+        
+        // Pass, 
+        // Note: Becuase of the initial config of the locations 
+        // 7. Position 2,1 is an obstacle
+        // Assertion7: !(obstacle);
+        
+        
+        // Fail
+        // 8. Position 4,0 is another obstacle2
+        // Assertion8: !(obstacle2);
+                
+        // Fail
+        // car1 will reach its goal state (destination)
+        // Note 16: It should pass through an unsafe cell, so it will never reach the destination without violating safety.
+       	// Assetion9: !(car1.pos == 5 && car1.lane == 0);   
+       
+	}
+}

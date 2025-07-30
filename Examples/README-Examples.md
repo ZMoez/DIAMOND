@@ -1,5 +1,8 @@
 # DIAMOND-Examples
 
+The examples were developed in collaboration with **Masoud Ebrahimi** and **Marjan Sirjani**.
+
+
 ## Example: Stepper
 
 We introduce a simple, self-contained reactive system referred to as the *Stepper*.  
@@ -113,4 +116,31 @@ In the **centralized version**, cars query a dedicated **Shield reactive class**
 3. After stepping, the car reports its updated state back to the Shield via `update()`.
 
 Demonstrates **centralized coordination** and enforcement across multiple agents with **global visibility**.
+
+
+
+## Example: SimpleCar and SimpleCar-Shielded
+
+This example models an ** autonomous car** moving along a bounded road.  
+At each cycle, the car chooses one of three actions:  
+- `Idle` (do nothing)  
+- `Forward` (move toward destination)  
+- `Backward` (move away from destination)
+
+#### SimpleCar
+The basic version executes the chosen action **without any safety checks**, which may result in:
+- Going out of bounds
+- Staying idle before reaching destination
+- Moving backward/forward unnecessarily
+
+#### ShieldedSimpleCar
+The shielded variant wraps each decision with a **simple internal shield** that should:
+- Prevents unsafe moves (e.g., out-of-bounds)
+- Replaces them with e.g., `Idle` when necessary
+
+> This exampple is not yet complete. 
+> This example is an initial attempt to introduce a **shield template** embedded in the actor model, making it a useful starting point for shielding logic in Rebeca models. 
+
+
+
 
